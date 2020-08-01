@@ -200,7 +200,6 @@ class FerrumWizard
           js_method = "%s(%s)" % [name, args.map(&:inspect).join(', ')]
           puts 'js_method: ' + js_method.inspect if @debug
           @browser.evaluate(js_method)
-          @browser.network.wait_for_idle
           sleep 4
           self.scan_page()
         end
