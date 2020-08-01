@@ -14,9 +14,13 @@ class FerrumWizard
 
     @url, @debug = url, debug
     @browser = Ferrum::Browser.new headless: headless, timeout: timeout
-    sleep 2
+    sleep 3
     
-    @browser.goto url if url
+    if url
+      @browser.goto(@url)
+      @browser.network.wait_for_idle
+      sleep 4      
+    end
   end
   
   def inspect()
@@ -27,17 +31,12 @@ class FerrumWizard
     
     puts 'username: ' + username.inspect if @debug
 
-    b = @browser
-    b.goto(@url)
-    @browser.network.wait_for_idle
-    sleep 3
-
     # search for the username input box
-    e_username = b.at_xpath('//input[@type="email"]')
+    e_username = @browser.at_xpath('//input[@type="email"]')
     puts 'e_username: ' + e_username.inspect if @debug
     sleep 1
     # search for the password input box
-    e_password  = b.at_xpath('//input[@type="password"]')
+    e_password  = @browser.at_xpath('//input[@type="password"]')
     sleep 1
     
     if username and e_username then
@@ -56,13 +55,8 @@ class FerrumWizard
     
     puts 'username: ' + username.inspect if @debug
 
-    b = @browser
-    b.goto(@url)
-    @browser.network.wait_for_idle
-    sleep 3
-
     # search for the username input box
-    e_username = b.at_xpath('//input[@type="email"]')
+    e_username = @browser.at_xpath('//input[@type="email"]')
     puts 'e_username: ' + e_username.inspect if @debug
     sleep 1
     # search for the password input box
@@ -128,6 +122,7 @@ class FerrumWizard
     self
     
   end
+  
   
   def fetch_buttons()
 
@@ -220,9 +215,7 @@ class FerrumWizard
     
     # find radio buttons
     
-    #a = doc.root.xpath('//input[@type="radio"]')
     a = @browser.xpath('//input[@type="radio"]')
-    #h = a.group_by {|x| x.attributes[:name]}
     h = a.group_by {|x| x.attribute('name')}
     @radio = h.values
     define_singleton_method(:on) { @radio[0][0].click; self }

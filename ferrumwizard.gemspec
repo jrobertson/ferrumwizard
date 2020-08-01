@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name = 'ferrumwizard'
-  s.version = '0.1.3'
+  s.version = '0.1.4'
   s.summary = 'Makes web scraping easier using the Ferrum gem.'
   s.authors = ['James Robertson']
   s.files = Dir['lib/ferrumwizard.rb']
