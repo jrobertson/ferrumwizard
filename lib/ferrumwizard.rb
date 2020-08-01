@@ -10,11 +10,13 @@ class FerrumWizard
 
   attr_reader :browser, :links, :radio, :buttons, :js_methods
 
-  def initialize(url, headless: true, debug: false)
+  def initialize(url, headless: true, timeout: 10, debug: false)
 
     @url, @debug = url, debug
-    @browser = Ferrum::Browser.new headless: headless
+    @browser = Ferrum::Browser.new headless: headless, timeout: timeout
     sleep 2
+    
+    @browser.goto url if url
   end
   
   def inspect()
@@ -45,13 +47,41 @@ class FerrumWizard
     end
     
     e_password.focus.type(password, :Enter) if e_password
-    @browser.network.wait_for_idle
     
-    sleep 4
-
-    scan_page()
+    after_login()
     
   end    
+  
+  def login2(usernamex=nil, passwordx=nil, username: usernamex, password: passwordx)
+    
+    puts 'username: ' + username.inspect if @debug
+
+    b = @browser
+    b.goto(@url)
+    @browser.network.wait_for_idle
+    sleep 3
+
+    # search for the username input box
+    e_username = b.at_xpath('//input[@type="email"]')
+    puts 'e_username: ' + e_username.inspect if @debug
+    sleep 1
+    # search for the password input box
+    
+    if username and e_username then
+      puts 'entering the username' if @debug
+      e_username.focus.type(username, :Enter)       
+      sleep 2
+    end
+
+    e_password  = b.at_xpath('//input[@type="password"]')
+    sleep 1
+    
+    e_password.focus.type(password, :Enter) if e_password
+    
+    after_login()
+
+    
+  end     
   
   def quit
     @browser.quit
@@ -63,13 +93,41 @@ class FerrumWizard
     fetch_links()
     scan_form_elements()    
     scan_js_links()
-    self
+    self    
+  end
+  
+  def submit(h)
+
+    e = nil
+    
+    h.each do |key, value|
+      e = @browser.xpath('//input').find {|x| x.attribute('name') == key.to_s}      
+      e.focus.type(value)      
+    end
+    
+    e.focus.type('', :Enter)    
+    
+    sleep 4    
+    scan_page()
+    
   end
 
   def to_rb()
   end
   
   private
+  
+  def after_login()
+    
+    @browser.network.wait_for_idle    
+    sleep 4
+    scan_page()
+    
+    @browser.base_url = File.dirname(@browser.url)
+    @browser.mouse.scroll_to(0, 800)
+    self
+    
+  end
   
   def fetch_buttons()
 
@@ -100,7 +158,7 @@ class FerrumWizard
   
   def fetch_links()
      
-    all_links = @doc.root.xpath('//a')
+    all_links = @doc.root.xpath('//a[@href]')
     
     all_links.each do |x|
       
@@ -121,9 +179,10 @@ class FerrumWizard
       r
       
     end
+    
     indices = valid_links.map {|x| all_links.index x}
 
-    active_links = @browser.xpath('//a')
+    active_links = @browser.xpath('//a[@href]')
     valid_active_links = indices.map {|n| active_links[n]}
     
 
@@ -133,7 +192,8 @@ class FerrumWizard
       a << [valid_links[i].text, x]
       
       puts 'a: ' + a.inspect if @debug
-      a + a.map {|x, obj| [x.downcase, obj]}
+      a + a.map {|x2, obj| [x2.downcase, obj]}
+      
     end.to_h
     
     names = @links.keys.map(&:downcase).uniq.select {|x| x =~ /^[\w ]+$/}
@@ -142,10 +202,14 @@ class FerrumWizard
     names.each do |name|
       
       define_singleton_method name.gsub(/ +/,'_').to_sym do
+        
         links[name].click
+        @browser.network.wait_for_idle
+        
         sleep 1
         scan_page()
         self
+        
       end
       
     end
@@ -177,7 +241,7 @@ class FerrumWizard
     
 
       s = e.attribute('href')[/(?<=^javascript:)[^\(]+/]
-      puts 's: ' + s.inspect  
+      puts 's: ' + s.inspect  if @debug
       a = s.split(/\W+|(?=[A-Z])/).map {|label| [label, s]}
       a << [s, s]
       a << [s.split(/\W+|(?=[A-Z])/).join('_'), s]
@@ -186,7 +250,7 @@ class FerrumWizard
 
       a.concat a.map {|x, name| [x.downcase, name] }      
 
-      puts 'a: ' + a.inspect
+      puts 'a: ' + a.inspect if @debug
 
       a.uniq.select {|x, _| x =~ /^[a-z0-9_]+$/}.each do |x, name|
         
