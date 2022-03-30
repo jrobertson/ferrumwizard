@@ -11,16 +11,21 @@ class FerrumWizard
 
   attr_reader :browser, :links, :radio, :buttons, :js_methods
 
-  def initialize(url=nil, headless: true, timeout: 10, debug: false)
+  def initialize(url=nil, headless: true, timeout: 10, cookies: nil,
+                 debug: false)
 
     @url, @debug = url, debug
     @browser = Ferrum::Browser.new headless: headless, timeout: timeout
     sleep 3
 
-    if url
+    if url then
+
+      loadx(cookies) if cookies
+
       @browser.goto(@url)
       @browser.network.wait_for_idle
       sleep 4
+
     end
   end
 
@@ -60,6 +65,8 @@ class FerrumWizard
     end
 
   end
+
+  alias loadx load_cookies
 
   def login(usernamex=nil, passwordx=nil, username: usernamex, password: passwordx)
 
