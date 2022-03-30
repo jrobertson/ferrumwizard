@@ -16,11 +16,12 @@ class FerrumWizard
 
     @url, @debug = url, debug
     @browser = Ferrum::Browser.new headless: headless, timeout: timeout
-    sleep 3
+
+    loadx(cookies) if cookies
 
     if url then
 
-      loadx(cookies) if cookies
+      sleep 3
 
       @browser.goto(@url)
       @browser.network.wait_for_idle
