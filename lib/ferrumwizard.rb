@@ -48,16 +48,18 @@ class FerrumWizard
   #  url='https://somewebsite.com'
   #  fw.browser.goto(url)
   #
-  def load_cookies(filepath)
+  def load_cookies(raws)
 
-    rawcookies = YAML.load(File.read(filepath))
+    s = raws.lines.length > 1 ? raws : File.read(raws)
+
+    rawcookies = YAML.load(s)
 
     rawcookies.each do |h|
 
       if @debug then
         puts 'name: ' + h['name']
         puts 'h: ' + h.inspect
-        sleep 0.7
+        sleep 0.4
       end
 
       browser.cookies.set(name: h['name'], value: h['value'],
