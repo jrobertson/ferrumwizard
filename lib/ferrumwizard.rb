@@ -5,9 +5,11 @@
 require 'yaml'
 require 'rexle'
 require 'ferrum'
+require 'rxfhelper'
 
 
 class FerrumWizard
+  include RXFHelperModule
 
   attr_reader :browser, :links, :radio, :buttons, :js_methods
 
@@ -50,7 +52,8 @@ class FerrumWizard
   #
   def load_cookies(raws)
 
-    s = raws.lines.length > 1 ? raws : File.read(raws)
+    s = raws.lines.length > 1 ? raws : FileX.read(raws)
+    puts 's: ' + s.inspect if @debug
 
     rawcookies = YAML.load(s)
 
