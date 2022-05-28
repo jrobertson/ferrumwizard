@@ -32,6 +32,10 @@ class FerrumWizard
     end
   end
 
+  def body()
+    @browser.body
+  end
+
   def inspect()
     "#<FerrumWizard>"
   end
