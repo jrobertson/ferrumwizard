@@ -32,6 +32,10 @@ class FerrumWizard
     end
   end
 
+  def at_xpath(s)
+    @browser.at_xpath(s)
+  end
+
   def body()
     @browser.body
   end
@@ -66,7 +70,7 @@ class FerrumWizard
       if @debug then
         puts 'name: ' + h['name']
         puts 'h: ' + h.inspect
-        sleep 0.4
+        sleep 0.1
       end
 
       browser.cookies.set(name: h['name'], value: h['value'],
