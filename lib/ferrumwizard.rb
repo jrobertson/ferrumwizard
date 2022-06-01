@@ -40,6 +40,23 @@ class FerrumWizard
     @browser.body
   end
 
+  def click(xpath)
+    r = @browser.at_xpath(xpath)
+    r.focus.click
+    sleep 0.4
+  end
+
+  def input(xpath, value)
+
+    r = @browser.at_xpath(xpath)
+    puts 'xpath: ' + xpath.inspect if @debug
+    raise 'invalid xpath -> ' + xpath.inspect unless r
+    sleep 1 if @debug
+    r.focus.type value
+    sleep 1
+
+  end
+
   def inspect()
     "#<FerrumWizard>"
   end
@@ -189,6 +206,34 @@ class FerrumWizard
 
   end
 
+  # selects an item from a nested drop-down list
+  #
+  def select(xpath, title)
+
+    e = @browser.at_xpath(xpath)
+    raise 'invalid xpath -> ' + xpath.inspect unless e
+
+    titles = if e.tag_name == 'select' then
+      e.xpath('option').map(&:text)
+    else
+      e.xpath('select/option').map(&:text)
+    end
+
+    r = titles.grep /#{title}/i
+    n = titles.index(r.first)
+    select_down(e, n)
+    sleep 0.5
+
+  end
+
+  # presses the down arrow n number of times to select a drop-down list item
+  #
+  def select_down(e, n)
+    e.focus
+    n.times { e.type(:down); sleep 0.4}
+    e.click
+  end
+
   def submit(h)
 
     e = nil
@@ -203,6 +248,10 @@ class FerrumWizard
     sleep 4
     scan_page()
 
+  end
+
+  def to_doc()
+    @doc
   end
 
   def to_rb()
